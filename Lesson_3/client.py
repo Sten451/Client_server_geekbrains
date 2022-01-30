@@ -1,9 +1,11 @@
 """Программа-клиент"""
-
+import logging
 import sys, json, socket, time
 from common.variables import ACCOUNT_LOGIN, USER,CURRENT_TIME, ACTION,DEF_PORT, DEF_IP_ADDRESS, MAX_CONNECTIONS, MAX_PACKAGE_LENGTH, FORMAT, CODE_RESPONSE, CODE_ERROR, CODE_PRESENCE
 from common.utils import get_message, send_message
+import log.config_client_log
 
+CLIENT_LOGGER = logging.getLogger('client')
 
 def create_answer(account_login='Guest'):
     '''
@@ -19,6 +21,7 @@ def create_answer(account_login='Guest'):
             ACCOUNT_LOGIN: account_login
         }
     }
+    CLIENT_LOGGER.debug(f'Сформировано {data[ACTION]} сообщение для пользователя {data[USER][ACCOUNT_LOGIN]}')
     return data
 
 
@@ -30,9 +33,15 @@ def process_answer(message):
     '''
     if CODE_RESPONSE in message:
         if message[CODE_RESPONSE] == 200:
+            CLIENT_LOGGER.info(f'Соединение успешно установлено: {message[CODE_RESPONSE]}')
             return f'Ответ сервера: {message[CODE_RESPONSE]} OK'
-        return f'Ответ сервера: 400 : {message[CODE_ERROR]}'
-    raise ValueError
+        CLIENT_LOGGER.error(f'Соединение не установлено.')
+        try:
+            return f'Ответ сервера: 400 : {message[CODE_ERROR]}'
+        except KeyError:
+            CLIENT_LOGGER.error(f'Неизвестная ошибка подключения')
+        raise ValueError
+
 
 
 def base():
@@ -46,8 +55,9 @@ def base():
     except IndexError:
         server_address = DEF_IP_ADDRESS
         server_port = DEF_PORT
+        CLIENT_LOGGER.warning(f'Установлены по умолчанию IP {server_address}, PORT {server_port}')
     except ValueError:
-        print('В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
+        CLIENT_LOGGER.error(f'В качестве порта может быть указано только число в диапазоне от 1024 до 65535.')
         sys.exit(1)
 
     # Инициализация сокета и обмен
@@ -60,7 +70,7 @@ def base():
         answer = process_answer(get_message(new_socket))
         print(answer)
     except (ValueError, json.JSONDecodeError):
-        print(f'Не удалось декодировать сообщение сервера.')
+        CLIENT_LOGGER.error(f'Не удалось декодировать сообщение сервера.')
 
 
 if __name__ == '__main__':

@@ -4,7 +4,10 @@ import socket, sys, json
 from common.variables import ACCOUNT_LOGIN, USER,CURRENT_TIME, ACTION,DEF_PORT, DEF_IP_ADDRESS, \
     MAX_CONNECTIONS, CODE_RESPONSE, CODE_ERROR, CODE_PRESENCE
 from common.utils import get_message, send_message
+import logging
+import log.config_server_log
 
+SERVER_LOGGER = logging.getLogger('server')
 
 def process_client_message(message):
     '''
@@ -17,12 +20,12 @@ def process_client_message(message):
     '''
     if ACTION in message and message[ACTION] == CODE_PRESENCE and CURRENT_TIME in message \
             and USER in message and message[USER][ACCOUNT_LOGIN] == 'Guest':
+        SERVER_LOGGER.info(f'Пользователь {message[USER][ACCOUNT_LOGIN]} подключился к серверу.')
         return {CODE_RESPONSE: 200}
+    SERVER_LOGGER.error("Некорректный запрос на подключение.")
     return {
-        CODE_RESPONSE: 400,
-        CODE_ERROR: 'Bad Request'
+        CODE_RESPONSE: 400, CODE_ERROR: 'Bad Request'
     }
-
 
 def base():
     '''
@@ -40,10 +43,10 @@ def base():
         if port < 1024 or port > 65535:
             raise ValueError
     except IndexError:
-        print(f'После параметра -\'p\' необходимо указать номер порта.')
+        SERVER_LOGGER.critical(f'После параметра -\'p\' необходимо указать номер порта.')
         sys.exit(1)
     except ValueError:
-        print(f'В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
+        SERVER_LOGGER.critical(f'В качастве порта может быть указано только число в диапазоне от 1024 до 65535.')
         sys.exit(1)
 
     # Затем загружаем какой адрес слушать
@@ -55,7 +58,7 @@ def base():
             address = ''
 
     except IndexError:
-        print(f'После параметра \'a\'- необходимо указать адрес, который будет слушать сервер.')
+        SERVER_LOGGER.critical(f'После параметра \'a\'- необходимо указать адрес, который будет слушать сервер.')
         sys.exit(1)
 
     # Готовим сокет
@@ -77,7 +80,7 @@ def base():
             send_message(client, response)
             client.close()
         except (ValueError, json.JSONDecodeError):
-            print(f'Принято некорретное сообщение от клиента.')
+            SERVER_LOGGER.warning(f'Принято некорретное сообщение от клиента.')
             client.close()
 
 

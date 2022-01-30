@@ -1,4 +1,5 @@
 """Константы"""
+import logging
 
 # Порт по умолчанию для сетевого ваимодействия
 DEF_PORT = 7777
@@ -21,3 +22,5 @@ ACCOUNT_LOGIN = 'account_name'
 CODE_PRESENCE = 'presence'
 CODE_RESPONSE = 'response'
 CODE_ERROR = 'error'
+
+LOGGING_LEVEL = logging.DEBUG
