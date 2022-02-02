@@ -2,6 +2,8 @@
 
 import json
 from common.variables import MAX_PACKAGE_LENGTH, FORMAT
+from decoration import log
+
 
 def get_message(client):
     '''
@@ -10,7 +12,6 @@ def get_message(client):
     :param client:
     :return:
     '''
-
     encoded_response = client.recv(MAX_PACKAGE_LENGTH)
     if isinstance(encoded_response, bytes):
         response = json.loads(encoded_response.decode(FORMAT))

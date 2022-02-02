@@ -4,9 +4,11 @@ import sys, json, socket, time
 from common.variables import ACCOUNT_LOGIN, USER,CURRENT_TIME, ACTION,DEF_PORT, DEF_IP_ADDRESS, MAX_CONNECTIONS, MAX_PACKAGE_LENGTH, FORMAT, CODE_RESPONSE, CODE_ERROR, CODE_PRESENCE
 from common.utils import get_message, send_message
 import log.config_client_log
+from decoration import log
 
 CLIENT_LOGGER = logging.getLogger('client')
 
+@log
 def create_answer(account_login='Guest'):
     '''
     Функция генерирует запрос о присутствии клиента
@@ -24,7 +26,7 @@ def create_answer(account_login='Guest'):
     CLIENT_LOGGER.debug(f'Сформировано {data[ACTION]} сообщение для пользователя {data[USER][ACCOUNT_LOGIN]}')
     return data
 
-
+@log
 def process_answer(message):
     '''
     Функция разбирает ответ сервера
